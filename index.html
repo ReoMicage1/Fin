@@ -1,0 +1,2988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FunMapApp</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=573abbaa-17dd-40ce-8d05-10440da0ccb8&lang=ru_RU"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.css">
+    <style>
+        :root {
+            --primary-color: #4285F4;
+            --secondary-color: #34A853;
+            --accent-color: #EA4335;
+            --dark-color: #202124;
+            --light-color: #f8f9fa;
+            --border-color: #dadce0;
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+            color: var(--dark-color);
+            background-color: #f5f5f5;
+        }
+        
+        body.dark-theme {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        
+        body.dark-theme header {
+            background-color: #1e1e1e;
+            border-bottom-color: #333;
+        }
+        
+        body.dark-theme .sidebar {
+            background-color: #1e1e1e;
+            border-right-color: #333;
+        }
+        
+        body.dark-theme .modal-content {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        body.dark-theme .tab {
+            color: #e0e0e0;
+        }
+        
+        body.dark-theme .search-box,
+        body.dark-theme .sidebar label,
+        body.dark-theme .sidebar input[type="text"],
+        body.dark-theme .sidebar textarea,
+        body.dark-theme .sidebar select {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+        
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: white;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        header .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        header .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        header .logo h1 {
+            font-size: 22px;
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        header .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        header .language-switch {
+            display: flex;
+            gap: 5px;
+            background-color: #f1f3f4;
+            border-radius: 20px;
+            padding: 5px;
+        }
+        
+        body.dark-theme header .language-switch {
+            background-color: #333;
+        }
+        
+        header .language-switch button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+        
+        header .language-switch button.active {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme header .language-switch button.active {
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        
+        .user-profile {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .user-profile-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 0;
+            width: 200px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1001;
+        }
+        
+        body.dark-theme .user-profile-menu {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+        
+        .user-profile-menu.show {
+            display: block;
+        }
+        
+        .user-profile-menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: var(--dark-color);
+        }
+        
+        body.dark-theme .user-profile-menu-item {
+            color: #e0e0e0;
+        }
+        
+        .user-profile-menu-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        body.dark-theme .user-profile-menu-item:hover {
+            background-color: #333;
+        }
+        
+        .user-profile-menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-container {
+            display: flex;
+            height: calc(100vh - 61px);
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: white;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            transition: transform 0.3s;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+        
+        .sidebar h3 {
+            font-size: 16px;
+            margin: 15px 0 10px 15px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        body.dark-theme .sidebar h3 {
+            color: #4285F4;
+        }
+        
+        .map {
+            flex-grow: 1;
+            height: 100%;
+        }
+        
+        .location-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: var(--primary-color);
+            transition: all 0.3s;
+        }
+        
+        body.dark-theme .location-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+        
+        .location-btn:hover {
+            background-color: #f1f3f4;
+            transform: scale(1.05);
+        }
+        
+        body.dark-theme .location-btn:hover {
+            background-color: #333;
+        }
+        
+        .filter-range {
+            margin: 15px;
+        }
+        
+        .filter-range input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        body.dark-theme .filter-range input[type="range"] {
+            background: #444;
+        }
+        
+        .filter-range input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .sidebar label {
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        body.dark-theme .sidebar label {
+            color: #e0e0e0;
+        }
+        
+        .sidebar label:hover {
+            background-color: #f8f9fa;
+        }
+        
+        body.dark-theme .sidebar label:hover {
+            background-color: #333;
+        }
+        
+        .sidebar input[type="checkbox"] {
+            margin-right: 10px;
+            accent-color: var(--primary-color);
+        }
+        
+        .subcategories {
+            margin-left: 15px;
+            display: none;
+            border-left: 2px solid #e0e0e0;
+            padding-left: 10px;
+        }
+        
+        body.dark-theme .subcategories {
+            border-left-color: #444;
+        }
+        
+        .filter-category-label {
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .filter-category-label::after {
+            content: "+";
+            position: absolute;
+            right: 15px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        
+        .filter-category-label.expanded::after {
+            content: "-";
+        }
+        
+        .banner {
+            width: 100%;
+            height: 200px;
+            background-image: linear-gradient(135deg, #4285F4 0%, #34A853 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .banner-text {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+        
+        .banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="rgba(255,255,255,0.1)" d="M0,0 L100,0 L100,100 L0,100 Z" /></svg>');
+            background-size: cover;
+            opacity: 0.1;
+        }
+        
+        .toggle-sidebar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .toggle-sidebar {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .search-container {
+            margin: 15px;
+            position: relative;
+            max-width: calc(100% - 30px);
+        }
+        
+        .search-box {
+            width: calc(100% - 50px);
+            padding: 10px 15px 10px 35px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        body.dark-theme .search-box {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #5f6368;
+        }
+        
+        body.dark-theme .search-icon {
+            color: #aaa;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme .search-results {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
+        
+        .search-result-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #eee;
+        }
+        
+        body.dark-theme .search-result-item {
+            border-bottom-color: #444;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        body.dark-theme .search-result-item:hover {
+            background-color: #333;
+        }
+        
+        .search-result-category {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        body.dark-theme .search-result-category {
+            color: #aaa;
+        }
+        
+        .cluster-icon {
+            background: var(--primary-color);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .placemark-icon {
+            background: var(--secondary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .category-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 5px;
+            color: #5f6368;
+        }
+        
+        body.dark-theme .category-tag {
+            background-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .view-all-btn {
+            display: block;
+            margin: 15px auto;
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .view-all-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        .reviews-container {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding-right: 5px;
+        }
+        
+        .review {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+        
+        body.dark-theme .review {
+            border-bottom-color: #444;
+        }
+        
+        .review:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .review-author {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .review-date {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        body.dark-theme .review-date {
+            color: #aaa;
+        }
+        
+        .review-text {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .add-review-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .add-review-btn:hover {
+            background-color: #2d9e4d;
+        }
+        
+        .photo-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .photo-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        body.dark-theme .stat-label {
+            color: #aaa;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+        }
+        
+        body.dark-theme .modal-content {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        body.dark-theme .close-modal {
+            color: #aaa;
+        }
+        
+        .modal-title {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        body.dark-theme .modal-title {
+            color: #4285F4;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        
+        body.dark-theme .tab-container {
+            border-bottom-color: #444;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        body.dark-theme .tab {
+            color: #e0e0e0;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        body.dark-theme .tab.active {
+            color: #4285F4;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .fullscreen-photo {
+            max-width: 100%;
+            max-height: 60vh;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .photo-modal-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .photo-modal-nav button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .rating-container {
+            margin: 10px 0;
+        }
+        
+        .save-place-btn {
+            position: absolute;
+            top: 15px;
+            right: 60px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .save-place-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .saved-places-btn {
+            position: absolute;
+            top: 15px;
+            right: 100px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .saved-places-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .route-btn {
+            position: absolute;
+            top: 15px;
+            right: 140px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .route-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .share-btn {
+            position: absolute;
+            top: 15px;
+            right: 180px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .share-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .route-panel {
+            position: absolute;
+            top: 60px;
+            right: 15px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme .route-panel {
+            background-color: #1e1e1e;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .route-panel select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        
+        body.dark-theme .route-panel select {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .route-panel button {
+            width: 100%;
+            padding: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .route-panel button:hover {
+            background-color: #3367d6;
+        }
+        
+        .share-panel {
+            position: absolute;
+            top: 60px;
+            right: 15px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme .share-panel {
+            background-color: #1e1e1e;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .share-panel input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+        }
+        
+        body.dark-theme .share-panel input {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .share-panel button {
+            width: 100%;
+            padding: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .share-panel button:hover {
+            background-color: #3367d6;
+        }
+        
+        .weather-widget {
+            margin: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        body.dark-theme .weather-widget {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+        
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .weather-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+        
+        .weather-location {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        body.dark-theme .weather-location {
+            color: #aaa;
+        }
+        
+        .weather-refresh {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .weather-content {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .weather-icon {
+            font-size: 40px;
+            margin-right: 15px;
+            color: #f39c12;
+        }
+        
+        .weather-details {
+            flex: 1;
+        }
+        
+        .weather-temp {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .weather-desc {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        body.dark-theme .weather-desc {
+            color: #aaa;
+        }
+        
+        .weather-extra {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        body.dark-theme .weather-extra {
+            color: #aaa;
+        }
+        
+        .weather-extra div {
+            display: flex;
+            align-items: center;
+        }
+        
+        .weather-extra i {
+            margin-right: 5px;
+            font-size: 16px;
+        }
+        
+        .music-controls {
+            margin: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        body.dark-theme .music-controls {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+        
+        .music-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .music-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+        
+        .music-player {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .music-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        
+        .music-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        body.dark-theme .music-btn:hover {
+            background-color: #444;
+        }
+        
+        .music-volume {
+            width: 100px;
+            margin-left: 10px;
+        }
+        
+        .feature-chip {
+            display: inline-flex;
+            align-items: center;
+            background-color: #f1f3f4;
+            border-radius: 16px;
+            padding: 4px 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        body.dark-theme .feature-chip {
+            background-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .feature-chip i {
+            margin-right: 4px;
+            font-size: 12px;
+        }
+        
+        .features-container {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .event-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        body.dark-theme .event-card {
+            background-color: #2d2d2d;
+        }
+        
+        .event-date {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .event-title {
+            font-weight: 500;
+            margin: 5px 0;
+        }
+        
+        .ar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .ar-content {
+            text-align: center;
+            max-width: 80%;
+        }
+        
+        .ar-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .ar-video {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px 0;
+            border: 2px solid white;
+            border-radius: 8px;
+        }
+        
+        .ar-instructions {
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .ar-switch-camera {
+            margin-top: 15px;
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .friends-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        body.dark-theme .friend-item {
+            border-bottom-color: #444;
+        }
+        
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .friend-info {
+            flex: 1;
+        }
+        
+        .friend-name {
+            font-weight: 500;
+        }
+        
+        .friend-status {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        body.dark-theme .friend-status {
+            color: #aaa;
+        }
+        
+        .friend-status.online {
+            color: var(--secondary-color);
+        }
+        
+        .add-friend-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .profile-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .avatar-placeholder {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .change-avatar-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .profile-info {
+            width: 100%;
+        }
+        
+        .profile-field {
+            margin-bottom: 15px;
+        }
+        
+        .profile-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .profile-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        
+        body.dark-theme .profile-field input {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .save-profile-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .settings-content {
+            padding: 10px;
+        }
+        
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        
+        .settings-section h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+        
+        .settings-section label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .save-settings-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .instructions-content {
+            padding: 10px;
+        }
+        
+        .instructions-content ol {
+            padding-left: 20px;
+        }
+        
+        .full-instructions-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .full-instructions-link:hover {
+            text-decoration: underline;
+        }
+        
+        .create-marker-btn {
+            position: absolute;
+            top: 15px;
+            right: 220px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .create-marker-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .map-type-selector {
+            position: absolute;
+            top: 15px;
+            right: 260px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .map-type-selector {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .traffic-toggle {
+            position: absolute;
+            top: 15px;
+            right: 300px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .traffic-toggle {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .accessibility-btn {
+            position: absolute;
+            top: 15px;
+            left: 60px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .accessibility-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .offline-btn {
+            position: absolute;
+            top: 15px;
+            left: 100px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .offline-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .history-btn {
+            position: absolute;
+            top: 15px;
+            left: 140px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .history-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .collaboration-btn {
+            position: absolute;
+            top: 15px;
+            left: 180px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .collaboration-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .analytics-btn {
+            position: absolute;
+            top: 15px;
+            left: 220px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .analytics-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .accessibility-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255,255,255,0.9);
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        body.dark-theme .accessibility-overlay {
+            background-color: rgba(30,30,30,0.9);
+        }
+        
+        .accessibility-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        body.dark-theme .accessibility-content {
+            background-color: #1e1e1e;
+        }
+        
+        .accessibility-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--dark-color);
+        }
+        
+        body.dark-theme .accessibility-close {
+            color: #e0e0e0;
+        }
+        
+        .accessibility-option {
+            margin-bottom: 15px;
+        }
+        
+        .accessibility-option label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .accessibility-option input {
+            margin-right: 10px;
+        }
+        
+        .accessibility-apply {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 5000;
+            display: none;
+        }
+        
+        .login-btn {
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        .marker-weather-info {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 200px;
+            font-size: 14px;
+        }
+        
+        body.dark-theme .marker-weather-info {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        .marker-weather-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        
+        .marker-weather-content {
+            display: flex;
+            align-items: center;
+        }
+        
+        .marker-weather-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #f39c12;
+        }
+        
+        .marker-weather-temp {
+            font-weight: bold;
+        }
+        
+        .walk-mode-btn {
+            position: absolute;
+            bottom: 90px;
+            right: 30px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: var(--primary-color);
+            transition: all 0.3s;
+        }
+        
+        body.dark-theme .walk-mode-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+        
+        .walk-mode-btn:hover {
+            background-color: #f1f3f4;
+            transform: scale(1.05);
+        }
+        
+        body.dark-theme .walk-mode-btn:hover {
+            background-color: #333;
+        }
+        
+        .walk-mode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .walk-mode-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            color: var(--dark-color);
+        }
+        
+        body.dark-theme .walk-mode-content {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        .walk-mode-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .walk-mode-instructions {
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .walk-mode-controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .walk-mode-controls button {
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .walk-mode-minimap {
+            width: 150px;
+            height: 150px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1001;
+            display: none;
+        }
+        
+        body.dark-theme .walk-mode-minimap {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+        
+        .walk-mode-street-view {
+            width: 100%;
+            height: 300px;
+            background-color: #eee;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        body.dark-theme .walk-mode-street-view {
+            background-color: #444;
+        }
+        
+        .walk-mode-street-view img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .walk-mode-position {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .walk-mode-blue-streets {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        
+        .walk-mode-blue-street {
+            stroke: #4285F4;
+            stroke-width: 3;
+            fill: none;
+        }
+        
+        .drawing-tools {
+            position: absolute;
+            top: 60px;
+            left: 15px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme .drawing-tools {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
+        
+        .drawing-tools button {
+            display: block;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .drawing-tools button:hover {
+            background-color: #3367d6;
+        }
+        
+        .measure-tool {
+            position: absolute;
+            top: 60px;
+            left: 15px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme .measure-tool {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
+        
+        .measure-tool button {
+            display: block;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .measure-tool button:hover {
+            background-color: #3367d6;
+        }
+        
+        .measure-result {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .whats-nearby-panel {
+            position: absolute;
+            top: 60px;
+            right: 15px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 250px;
+        }
+        
+        body.dark-theme .whats-nearby-panel {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
+        
+        .whats-nearby-panel select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        
+        body.dark-theme .whats-nearby-panel select {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .whats-nearby-panel button {
+            width: 100%;
+            padding: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .whats-nearby-panel button:hover {
+            background-color: #3367d6;
+        }
+        
+        .whats-nearby-results {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .whats-nearby-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        body.dark-theme .whats-nearby-item {
+            border-bottom-color: #444;
+        }
+        
+        .whats-nearby-item:last-child {
+            border-bottom: none;
+        }
+        
+        .whats-nearby-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        body.dark-theme .whats-nearby-item:hover {
+            background-color: #333;
+        }
+        
+        .whats-nearby-distance {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        body.dark-theme .whats-nearby-distance {
+            color: #aaa;
+        }
+        
+        .social-integration {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        body.dark-theme .social-integration {
+            border-top-color: #444;
+        }
+        
+        .social-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        
+        .social-button {
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .facebook-button {
+            background-color: #3b5998;
+        }
+        
+        .twitter-button {
+            background-color: #1da1f2;
+        }
+        
+        .vk-button {
+            background-color: #4a76a8;
+        }
+        
+        .instagram-button {
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+        }
+        
+        .calendar-events {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .calendar-event {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        body.dark-theme .calendar-event {
+            background-color: #2d2d2d;
+        }
+        
+        .calendar-event-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .calendar-event-date {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        body.dark-theme .calendar-event-date {
+            color: #aaa;
+        }
+        
+        .calendar-event-description {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .time-filter {
+            margin: 15px;
+        }
+        
+        .time-filter label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .time-filter select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        
+        body.dark-theme .time-filter select {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .route-multi-point {
+            position: absolute;
+            top: 60px;
+            right: 15px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme .route-multi-point {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
+        
+        .route-multi-point input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        
+        body.dark-theme .route-multi-point input {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .route-multi-point button {
+            width: 100%;
+            padding: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+        
+        .route-multi-point button:hover {
+            background-color: #3367d6;
+        }
+        
+        .route-points-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .route-point-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        body.dark-theme .route-point-item {
+            border-bottom-color: #444;
+        }
+        
+        .route-point-item:last-child {
+            border-bottom: none;
+        }
+        
+        .real-time-traffic {
+            position: absolute;
+            top: 60px;
+            right: 15px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        body.dark-theme .real-time-traffic {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
+        
+        .traffic-level {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .traffic-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .traffic-green {
+            background-color: #34A853;
+        }
+        
+        .traffic-yellow {
+            background-color: #FBBC05;
+        }
+        
+        .traffic-red {
+            background-color: #EA4335;
+        }
+        
+        .traffic-black {
+            background-color: #000;
+        }
+        
+        .traffic-description {
+            font-size: 14px;
+        }
+        
+        .drawing-btn {
+            position: absolute;
+            top: 15px;
+            right: 340px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .drawing-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .measure-btn {
+            position: absolute;
+            top: 15px;
+            right: 380px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .measure-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .whats-nearby-btn {
+            position: absolute;
+            top: 15px;
+            right: 420px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .whats-nearby-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .real-time-traffic-btn {
+            position: absolute;
+            top: 15px;
+            right: 460px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .real-time-traffic-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .theme-toggle-btn {
+            position: absolute;
+            top: 15px;
+            right: 500px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        body.dark-theme .theme-toggle-btn {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                left: 0;
+                top: 61px;
+                bottom: 0;
+                z-index: 900;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.visible {
+                transform: translateX(0);
+            }
+            
+            .toggle-sidebar {
+                display: block;
+            }
+            
+            .banner-text {
+                font-size: 24px;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+            
+            .save-place-btn, 
+            .saved-places-btn,
+            .route-btn,
+            .share-btn,
+            .create-marker-btn,
+            .map-type-selector,
+            .traffic-toggle,
+            .accessibility-btn,
+            .offline-btn,
+            .history-btn,
+            .collaboration-btn,
+            .analytics-btn,
+            .drawing-btn,
+            .measure-btn,
+            .whats-nearby-btn,
+            .real-time-traffic-btn,
+            .theme-toggle-btn {
+                display: block;
+            }
+            
+            .route-btn {
+                right: 100px;
+            }
+            
+            .share-btn {
+                right: 140px;
+            }
+            
+            .create-marker-btn {
+                right: 180px;
+            }
+            
+            .map-type-selector {
+                right: 220px;
+            }
+            
+            .traffic-toggle {
+                right: 260px;
+            }
+            
+            .drawing-btn {
+                right: 300px;
+            }
+            
+            .measure-btn {
+                right: 340px;
+            }
+            
+            .whats-nearby-btn {
+                right: 380px;
+            }
+            
+            .real-time-traffic-btn {
+                right: 420px;
+            }
+            
+            .theme-toggle-btn {
+                right: 460px;
+            }
+            
+            .user-profile-menu {
+                width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="logo.png" alt="FunMapApp Logo">
+            <h1>FunMapApp</h1>
+        </div>
+        <div class="right-controls">
+            <div class="language-switch">
+                <button class="active" onclick="translatePage('ru')">Рус</button>
+                <button onclick="translatePage('en')">Eng</button>
+            </div>
+            <div class="user-profile" onclick="toggleProfileMenu()">
+                <i class="fas fa-user"></i>
+                <div class="user-profile-menu" id="profileMenu">
+                    <div class="user-profile-menu-item" onclick="showProfile()">
+                        <i class="fas fa-user"></i> Профиль
+                    </div>
+                    <div class="user-profile-menu-item" onclick="showSettings()">
+                        <i class="fas fa-cog"></i> Настройки
+                    </div>
+                    <div class="user-profile-menu-item" onclick="showFriends()">
+                        <i class="fas fa-users"></i> Друзья
+                    </div>
+                    <div class="user-profile-menu-item" onclick="showARMode()">
+                        <i class="fas fa-street-view"></i> AR-режим
+                    </div>
+                    <div class="user-profile-menu-item" onclick="showInstructions()">
+                        <i class="fas fa-book"></i> Инструкция
+                    </div>
+                    <div class="user-profile-menu-item" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="banner">
+        <div class="banner-text">Откройте для себя мир с FunMapApp</div>
+    </div>
+
+    <div class="main-container">
+        <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <button class="save-place-btn" onclick="saveCurrentPlace()"><i class="fas fa-bookmark"></i></button>
+        <button class="saved-places-btn" onclick="showSavedPlaces()"><i class="fas fa-star"></i></button>
+        <button class="route-btn" onclick="toggleRoutePanel()"><i class="fas fa-route"></i></button>
+        <button class="share-btn" onclick="toggleSharePanel()"><i class="fas fa-share-alt"></i></button>
+        <button class="create-marker-btn" onclick="createCustomMarker()"><i class="fas fa-map-marker-alt"></i></button>
+        <button class="map-type-selector" onclick="toggleMapType()"><i class="fas fa-layer-group"></i></button>
+        <button class="traffic-toggle" onclick="toggleTraffic()"><i class="fas fa-traffic-light"></i></button>
+        <button class="accessibility-btn" onclick="showAccessibilityOptions()"><i class="fas fa-universal-access"></i></button>
+        <button class="offline-btn" onclick="toggleOfflineMode()"><i class="fas fa-cloud-download-alt"></i></button>
+        <button class="history-btn" onclick="showHistory()"><i class="fas fa-history"></i></button>
+        <button class="collaboration-btn" onclick="showCollaboration()"><i class="fas fa-users-cog"></i></button>
+        <button class="analytics-btn" onclick="showAnalytics()"><i class="fas fa-chart-line"></i></button>
+        <button class="walk-mode-btn" onclick="startWalkMode()"><i class="fas fa-walking"></i></button>
+        <button class="drawing-btn" onclick="toggleDrawingTools()"><i class="fas fa-pencil-alt"></i></button>
+        <button class="measure-btn" onclick="toggleMeasureTool()"><i class="fas fa-ruler"></i></button>
+        <button class="whats-nearby-btn" onclick="toggleWhatsNearby()"><i class="fas fa-search-location"></i></button>
+        <button class="real-time-traffic-btn" onclick="toggleRealTimeTraffic()"><i class="fas fa-car"></i></button>
+        <button class="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+        
+        <div class="route-panel" id="routePanel">
+            <select id="transportType">
+                <option value="auto">Автомобиль</option>
+                <option value="masstransit">Общественный транспорт</option>
+                <option value="pedestrian">Пешком</option>
+                <option value="bicycle">Велосипед</option>
+            </select>
+            <button onclick="buildRoute()">Построить маршрут</button>
+        </div>
+        
+        <div class="share-panel" id="sharePanel">
+            <input type="text" id="shareLink" readonly>
+            <button onclick="copyShareLink()"><i class="fas fa-copy"></i> Копировать ссылку</button>
+            <button onclick="shareMap()"><i class="fas fa-share"></i> Поделиться картой</button>
+            <div style="margin-top: 10px;">
+                <strong>HTML-код для вставки:</strong>
+                <textarea id="embedCode" style="width: 100%; height: 60px; margin-top: 5px;"></textarea>
+            </div>
+        </div>
+        
+        <div class="drawing-tools" id="drawingTools">
+            <button onclick="startDrawing('polygon')"><i class="fas fa-draw-polygon"></i> Рисовать полигон</button>
+            <button onclick="startDrawing('line')"><i class="fas fa-slash"></i> Рисовать линию</button>
+            <button onclick="startDrawing('circle')"><i class="fas fa-circle"></i> Рисовать круг</button>
+            <button onclick="startDrawing('rectangle')"><i class="fas fa-square"></i> Рисовать прямоугольник</button>
+            <button onclick="clearDrawings()"><i class="fas fa-trash"></i> Очистить рисунки</button>
+        </div>
+        
+        <div class="measure-tool" id="measureTool">
+            <button onclick="startMeasuring('distance')"><i class="fas fa-ruler-horizontal"></i> Измерить расстояние</button>
+            <button onclick="startMeasuring('area')"><i class="fas fa-ruler-combined"></i> Измерить площадь</button>
+            <div class="measure-result" id="measureResult"></div>
+        </div>
+        
+        <div class="whats-nearby-panel" id="whatsNearbyPanel">
+            <select id="nearbyCategory">
+                <option value="cafe">Кафе</option>
+                <option value="restaurant">Рестораны</option>
+                <option value="gas_station">АЗС</option>
+                <option value="park">Парки</option>
+                <option value="pharmacy">Аптеки</option>
+                <option value="bank">Банки</option>
+                <option value="atm">Банкоматы</option>
+                <option value="hotel">Отели</option>
+                <option value="supermarket">Супермаркеты</option>
+            </select>
+            <select id="nearbyRadius">
+                <option value="500">500 м</option>
+                <option value="1000">1 км</option>
+                <option value="2000">2 км</option>
+                <option value="5000">5 км</option>
+            </select>
+            <button onclick="searchNearby()">Найти</button>
+            <div class="whats-nearby-results" id="whatsNearbyResults"></div>
+        </div>
+        
+        <div class="route-multi-point" id="routeMultiPoint">
+            <input type="text" id="routePointInput" placeholder="Введите адрес или выберите на карте">
+            <button onclick="addRoutePoint()">Добавить точку</button>
+            <button onclick="buildMultiPointRoute()">Построить маршрут</button>
+            <div class="route-points-list" id="routePointsList"></div>
+        </div>
+        
+        <div class="real-time-traffic" id="realTimeTraffic">
+            <div class="traffic-level">
+                <div class="traffic-color traffic-green"></div>
+                <div class="traffic-description">Свободно</div>
+            </div>
+            <div class="traffic-level">
+                <div class="traffic-color traffic-yellow"></div>
+                <div class="traffic-description">Загружено</div>
+            </div>
+            <div class="traffic-level">
+                <div class="traffic-color traffic-red"></div>
+                <div class="traffic-description">Пробки</div>
+            </div>
+            <div class="traffic-level">
+                <div class="traffic-color traffic-black"></div>
+                <div class="traffic-description">Затор</div>
+            </div>
+        </div>
+        
+        <aside class="sidebar">
+            <div class="weather-widget" id="weatherWidget">
+                <div class="weather-header">
+                    <div>
+                        <div class="weather-title">Погода</div>
+                        <div class="weather-location" id="weatherLocation">Определение местоположения...</div>
+                    </div>
+                    <button class="weather-refresh" onclick="updateWeatherInfo()"><i class="fas fa-sync-alt"></i></button>
+                </div>
+                <div class="weather-content">
+                    <i class="fas fa-sun weather-icon" id="weatherMainIcon"></i>
+                    <div class="weather-details">
+                        <div class="weather-temp" id="weatherTemp">--°C</div>
+                        <div class="weather-desc" id="weatherDesc">Загрузка...</div>
+                    </div>
+                </div>
+                <div class="weather-extra">
+                    <div><i class="fas fa-wind"></i> <span id="weatherWind">-- м/с</span></div>
+                    <div><i class="fas fa-tint"></i> <span id="weatherHumidity">--%</span></div>
+                    <div><i class="fas fa-cloud-rain"></i> <span id="weatherPrecip">--%</span></div>
+                </div>
+            </div>
+            
+            <div class="music-controls">
+                <div class="music-header">
+                    <div class="music-title">Фоновая музыка</div>
+                </div>
+                <div class="music-player">
+                    <button class="music-btn" onclick="toggleMusic()" id="musicBtn">
+                        <i class="fas fa-play" id="musicIcon"></i>
+                    </button>
+                    <input type="range" min="0" max="100" value="50" class="music-volume" id="musicVolume" oninput="changeVolume()">
+                </div>
+            </div>
+            
+            <div class="time-filter">
+                <label>Фильтр по времени работы:</label>
+                <select id="timeFilter">
+                    <option value="all">Все</option>
+                    <option value="open_now">Открыто сейчас</option>
+                    <option value="morning">Утро (8:00-12:00)</option>
+                    <option value="afternoon">День (12:00-18:00)</option>
+                    <option value="evening">Вечер (18:00-23:00)</option>
+                    <option value="24_7">Круглосуточно</option>
+                </select>
+            </div>
+            
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-box" placeholder="Поиск мест или маршрутов..." id="searchInput">
+                <div class="search-results" id="searchResults"></div>
+            </div>
+            
+            <h3>Фильтр по популярности</h3>
+            <div class="filter-range">
+                <input type="range" min="0" max="100" value="50" id="popularityRange">
+                <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                    <span style="font-size: 12px;">Низкая</span>
+                    <span style="font-size: 12px;">Высокая</span>
+                </div>
+            </div>
+            
+            <label><input type="checkbox" id="heritageCheckbox"> Только культурное наследие</label>
+            <label><input type="checkbox" id="landOnlyCheckbox" checked> Только на суше</label>
+            
+            <h3>Категории</h3>
+            <div class="filter-categories">
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="cameras"> Камеры
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="traffic-cameras"> Дорожные камеры</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="security-cameras"> Камеры наблюдения</label></li>
+                </ul>
+                
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="places"> Интересные места
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="historical-places"> Исторические места</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="viewpoints"> Обзорные площадки</label></li>
+                </ul>
+                
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="entertainment"> Развлечения
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="parks"> Парки</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="attractions"> Аттракционы</label></li>
+                </ul>
+                
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="food"> Еда
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="restaurants"> Рестораны</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="cafes"> Кафе</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="fastfood"> Фастфуд</label></li>
+                </ul>
+                
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="shopping"> Магазины
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="malls"> Торговые центры</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="markets"> Рынки</label></li>
+                </ul>
+                
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="sport"> Спорт
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="stadiums"> Стадионы</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="gyms"> Спортзалы</label></li>
+                </ul>
+                
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="tourism"> Туризм
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="hotels"> Отели</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="hostels"> Хостелы</label></li>
+                </ul>
+                
+                <label class="filter-category-label" onclick="toggleSubcategories(this)">
+                    <input type="checkbox" class="filter-category" value="sights"> Достопримечательности
+                </label>
+                <ul class="subcategories">
+                    <li><label><input type="checkbox" class="filter-subcategory" value="monuments"> Памятники</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="museums"> Музеи</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="galleries"> Галереи</label></li>
+                    <li><label><input type="checkbox" class="filter-subcategory" value="parks"> Парки</label></li>
+                </ul>
+            </div>
+            
+            <button class="view-all-btn" onclick="viewAllRussia()">Показать все по России</button>
+        </aside>
+        
+        <div id="map" class="map"></div>
+        <button id="locationButton" class="location-btn"><i class="fas fa-location-arrow"></i></button>
+        
+        <div class="walk-mode-minimap" id="walkModeMinimap"></div>
+        <div class="walk-mode-blue-streets" id="walkModeBlueStreets"></div>
+        
+        <audio id="bgMusic" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+    
+    <div class="modal" id="placeModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 class="modal-title" id="modalPlaceName">Название места</h2>
+            
+            <div class="tab-container">
+                <div class="tab active" onclick="openTab(event, 'info')">Информация</div>
+                <div class="tab" onclick="openTab(event, 'reviews')">Отзывы</div>
+                <div class="tab" onclick="openTab(event, 'photos')">Фото</div>
+                <div class="tab" onclick="openTab(event, 'nearby')">Рядом</div>
+                <div class="tab" onclick="openTab(event, 'events')">События</div>
+            </div>
+            
+            <div id="info" class="tab-content active">
+                <p id="modalPlaceDescription">Описание места</p>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-value" id="modalRating">4.5</div>
+                        <div class="stat-label">Рейтинг</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="modalReviews">24</div>
+                        <div class="stat-label">Отзывов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="modalVisits">156</div>
+                        <div class="stat-label">Посещений</div>
+                    </div>
+                </div>
+                <p><strong>Адрес:</strong> <span id="modalAddress">ул. Примерная, 1</span></p>
+                <p><strong>Категория:</strong> <span id="modalCategory">Кафе</span></p>
+                <p><strong>Телефон:</strong> <span id="modalPhone">+7 (123) 456-78-90</span></p>
+                <p><strong>Время работы:</strong> <span id="modalHours">09:00 - 22:00</span></p>
+                
+                <div class="features-container" id="placeFeatures">
+                    <div class="feature-chip"><i class="fas fa-wifi"></i> Wi-Fi</div>
+                    <div class="feature-chip"><i class="fas fa-parking"></i> Парковка</div>
+                    <div class="feature-chip"><i class="fas fa-wheelchair"></i> Доступно</div>
+                </div>
+                
+                <div class="rating-container">
+                    <strong>Ваша оценка:</strong>
+                    <div id="userRating"></div>
+                </div>
+                
+                <div class="social-integration">
+                    <strong>Поделиться:</strong>
+                    <div class="social-buttons">
+                        <div class="social-button facebook-button" onclick="shareToFacebook()"><i class="fab fa-facebook-f"></i></div>
+                        <div class="social-button twitter-button" onclick="shareToTwitter()"><i class="fab fa-twitter"></i></div>
+                        <div class="social-button vk-button" onclick="shareToVK()"><i class="fab fa-vk"></i></div>
+                        <div class="social-button instagram-button" onclick="shareToInstagram()"><i class="fab fa-instagram"></i></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="reviews" class="tab-content">
+                <div class="reviews-container" id="reviewsList">
+                </div>
+                <button class="add-review-btn" onclick="showReviewForm()">Добавить отзыв</button>
+            </div>
+            
+            <div id="photos" class="tab-content">
+                <div class="photo-gallery" id="photoGallery">
+                </div>
+            </div>
+            
+            <div id="nearby" class="tab-content">
+                <div id="nearbyPlacesList">
+                </div>
+            </div>
+            
+            <div id="events" class="tab-content">
+                <div class="calendar-events" id="eventsList">
+                    <div class="calendar-event">
+                        <div class="calendar-event-title">Концерт группы</div>
+                        <div class="calendar-event-date">15 июня 2023, 19:00</div>
+                        <div class="calendar-event-description">Концерт популярной группы в летнем амфитеатре.</div>
+                    </div>
+                    <div class="calendar-event">
+                        <div class="calendar-event-title">Фестиваль еды</div>
+                        <div class="calendar-event-date">20-22 июня 2023</div>
+                        <div class="calendar-event-description">Ежегодный фестиваль местной кухни и напитков.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="photoModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closePhotoModal()">&times;</span>
+            <img src="" alt="Фото места" class="fullscreen-photo" id="fullscreenPhoto">
+            <div class="photo-modal-nav">
+                <button onclick="prevPhoto()"><i class="fas fa-chevron-left"></i> Назад</button>
+                <button onclick="nextPhoto()">Вперед <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeReviewModal()">&times;</span>
+            <h2 class="modal-title">Добавить отзыв</h2>
+            <div class="rating-container">
+                <strong>Оценка:</strong>
+                <div id="reviewRating"></div>
+            </div>
+            <textarea id="reviewText" placeholder="Ваш отзыв..." style="width: 100%; height: 150px; margin-top: 10px; padding: 10px;"></textarea>
+            <button class="add-review-btn" onclick="submitReview()">Отправить отзыв</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="savedPlacesModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeSavedPlacesModal()">&times;</span>
+            <h2 class="modal-title">Сохраненные места</h2>
+            <div id="savedPlacesList">
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeProfileModal()">&times;</span>
+            <h2 class="modal-title">Профиль пользователя</h2>
+            <div class="profile-content">
+                <div class="profile-avatar">
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <button class="change-avatar-btn" onclick="changeAvatar()">Изменить фото</button>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-field">
+                        <label>Имя:</label>
+                        <input type="text" value="Иван Иванов" id="profileName">
+                    </div>
+                    <div class="profile-field">
+                        <label>Email:</label>
+                        <input type="email" value="ivan@example.com" id="profileEmail">
+                    </div>
+                    <div class="profile-field">
+                        <label>Телефон:</label>
+                        <input type="tel" value="+7 (123) 456-78-90" id="profilePhone">
+                    </div>
+                    <div class="profile-field">
+                        <label>Дата рождения:</label>
+                        <input type="date" id="profileBirthday" value="1990-01-01">
+                    </div>
+                    <div class="profile-field">
+                        <label>Дата регистрации:</label>
+                        <input type="text" id="profileRegistrationDate" value="01.01.2023" readonly>
+                    </div>
+                </div>
+                <button class="save-profile-btn" onclick="saveProfile()">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
+            <h2 class="modal-title">Настройки</h2>
+            <div class="settings-content">
+                <div class="settings-section">
+                    <h3>Уведомления</h3>
+                    <label><input type="checkbox" id="notificationsEnabled" checked> Получать уведомления</label>
+                    <label><input type="checkbox" id="emailNotifications" checked> Email-уведомления</label>
+                    <label><input type="checkbox" id="pushNotifications"> Push-уведомления</label>
+                </div>
+                <div class="settings-section">
+                    <h3>Конфиденциальность</h3>
+                    <label><input type="checkbox" id="showLocation" checked> Показывать мое местоположение друзьям</label>
+                    <label><input type="checkbox" id="searchByEmail"> Разрешить поиск по email</label>
+                </div>
+                <button class="save-settings-btn" onclick="saveSettings()">Сохранить настройки</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="friendsModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeFriendsModal()">&times;</span>
+            <h2 class="modal-title">Друзья</h2>
+            <div class="friends-list" id="friendsList">
+            </div>
+            <button class="add-friend-btn" onclick="showAddFriendModal()">Добавить друга</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="addFriendModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddFriendModal()">&times;</span>
+            <h2 class="modal-title">Добавить друга</h2>
+            <div class="profile-field">
+                <label>Email или имя пользователя:</label>
+                <input type="text" id="friendSearchInput">
+            </div>
+            <div id="friendSearchResults"></div>
+            <button class="save-profile-btn" onclick="addFriend()">Добавить</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="instructionsModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeInstructionsModal()">&times;</span>
+            <h2 class="modal-title">Инструкция</h2>
+            <div class="instructions-content">
+                <h3>Как использовать FunMapApp:</h3>
+                <ol>
+                    <li>Используйте поиск для нахождения интересных мест</li>
+                    <li>Фильтруйте места по категориям и популярности</li>
+                    <li>Нажимайте на маркеры для получения подробной информации</li>
+                    <li>Сохраняйте понравившиеся места в избранное</li>
+                    <li>Строите маршруты до выбранных мест</li>
+                    <li>Делитесь местами с друзьями</li>
+                    <li>Используйте AR-режим для навигации</li>
+                    <li>Создавайте собственные маркеры на карте (правой кнопкой мыши)</li>
+                    <li>Просматривайте информацию о пробках и дорожной ситуации</li>
+                    <li>Переключайтесь между различными типами карт</li>
+                    <li>Используйте режим для слабовидящих в настройках</li>
+                    <li>Включайте оффлайн-режим при плохом соединении</li>
+                    <li>Просматривайте историю своих перемещений</li>
+                    <li>Совместно редактируйте маршруты с друзьями</li>
+                    <li>Анализируйте свою активность в разделе аналитики</li>
+                </ol>
+                <a href="instructions.html" class="full-instructions-link">Полная инструкция</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ar-overlay" id="arOverlay">
+        <span class="ar-close" onclick="closeARMode()">&times;</span>
+        <div class="ar-content">
+            <h2>AR-режим навигации</h2>
+            <video class="ar-video" id="arVideo" autoplay playsinline></video>
+            <div class="ar-instructions">
+                <p><strong>Как использовать AR-режим:</strong></p>
+                <ol>
+                    <li>Держите устройство вертикально перед собой</li>
+                    <li>Медленно поворачивайтесь, пока не увидите маршрут</li>
+                    <li>Следуйте указаниям на экране</li>
+                    <li>Для лучшего результата используйте заднюю камеру</li>
+                </ol>
+                <p>Маршрут будет отображаться поверх реального мира с помощью AR-технологий.</p>
+            </div>
+            <button class="ar-switch-camera" onclick="switchARCamera()">Переключить камеру</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="createMarkerModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCreateMarkerModal()">&times;</span>
+            <h2 class="modal-title">Создать маркер</h2>
+            <div class="profile-field">
+                <label>Название:</label>
+                <input type="text" id="markerName">
+            </div>
+            <div class="profile-field">
+                <label>Описание:</label>
+                <textarea id="markerDescription" rows="3"></textarea>
+            </div>
+            <div class="profile-field">
+                <label>Категория:</label>
+                <select id="markerCategory">
+                    <option value="custom">Пользовательский</option>
+                    <option value="favorite">Избранное</option>
+                    <option value="event">Событие</option>
+                    <option value="note">Заметка</option>
+                </select>
+            </div>
+            <button class="save-profile-btn" onclick="saveCustomMarker()">Создать маркер</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeHistoryModal()">&times;</span>
+            <h2 class="modal-title">История перемещений</h2>
+            <div id="historyList">
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="collaborationModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCollaborationModal()">&times;</span>
+            <h2 class="modal-title">Совместное редактирование</h2>
+            <div class="profile-field">
+                <label>Пригласить друзей:</label>
+                <input type="text" id="collaborationInvite" placeholder="Введите email или имя пользователя">
+            </div>
+            <div id="collaboratorsList">
+            </div>
+            <button class="save-profile-btn" onclick="saveCollaboration()">Сохранить изменения</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="analyticsModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAnalyticsModal()">&times;</span>
+            <h2 class="modal-title">Аналитика</h2>
+            <div id="analyticsContent">
+                <p>Здесь будет отображаться аналитика по вашим маршрутам и посещенным местам.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="accessibility-overlay" id="accessibilityOverlay">
+        <span class="accessibility-close" onclick="closeAccessibilityOptions()">&times;</span>
+        <div class="accessibility-content">
+            <h2>Настройки доступности</h2>
+            <div class="accessibility-option">
+                <label>
+                    <input type="checkbox" id="highContrastMode"> Высококонтрастный режим
+                </label>
+            </div>
+            <div class="accessibility-option">
+                <label>
+                    <input type="checkbox" id="textSizeLarge"> Увеличенный размер текста
+                </label>
+            </div>
+            <div class="accessibility-option">
+                <label>
+                    <input type="checkbox" id="voiceGuide"> Голосовое сопровождение
+                </label>
+            </div>
+            <button class="accessibility-apply" onclick="applyAccessibilityOptions()">Применить настройки</button>
+        </div>
+    </div>
+
+    <div class="walk-mode-overlay" id="walkModeOverlay">
+        <span class="walk-mode-close" onclick="exitWalkMode()">&times;</span>
+        <div class="walk-mode-content">
+            <h2>Режим виртуальной прогулки</h2>
+            <div class="walk-mode-street-view">
+                <img src="https://maps.googleapis.com/maps/api/streetview?size=600x300&location=55.7558,37.6176&fov=90&heading=210&pitch=0&key=YOUR_API_KEY" alt="Street View">
+                <div class="walk-mode-position">55.7558, 37.6176</div>
+            </div>
+            <div class="walk-mode-instructions">
+                <p><strong>Как использовать режим прогулки:</strong></p>
+                <ol>
+                    <li>Используйте стрелки на клавиатуре для перемещения</li>
+                    <li>Нажимайте на мини-карту для быстрого перемещения</li>
+                    <li>Используйте мышь для изменения направления взгляда</li>
+                </ol>
+            </div>
+            <div class="walk-mode-controls">
+                <button onclick="moveForward()"><i class="fas fa-arrow-up"></i> Вперед</button>
+                <button onclick="moveBackward()"><i class="fas fa-arrow-down"></i> Назад</button>
+                <button onclick="turnLeft()"><i class="fas fa-arrow-left"></i> Повернуть налево</button>
+                <button onclick="turnRight()"><i class="fas fa-arrow-right"></i> Повернуть направо</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <span id="notificationText">Изменения сохранены</span>
+    </div>
+
+    <div class="login-btn" id="loginBtn" onclick="goToLoginPage()">Войти / Зарегистрироваться</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script>
+    <script src="026.js"></script>
+</body>
+</html>
